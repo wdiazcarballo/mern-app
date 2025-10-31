@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MERN Stack on AWS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .container {
+      background: white;
+      color: #333;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h1 { color: #667eea; }
+    input, button {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover { background: #5568d3; }
+    .item {
+      background: #f5f5f5;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .delete-btn {
+      background: #dc3545;
+      padding: 5px 15px;
+      font-size: 14px;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+    .status.ok { background: #d4edda; color: #155724; }
+    .status.error { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 MERN Stack on AWS EC2</h1>
+    <div id="status"></div>
+
+    <div>
+      <h2>Add New Item</h2>
+      <input type="text" id="name" placeholder="Item name" />
+      <input type="text" id="description" placeholder="Description" />
+      <button onclick="addItem()">Add Item</button>
+    </div>
+
+    <div>
+      <h2>Items List</h2>
+      <button onclick="loadItems()">Refresh</button>
+      <div id="items"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = window.location.hostname === 'localhost'
+      ? 'http://localhost:5000/api'
+      : '/api';
+
+    async function checkBackend() {
+      try {
+        const res = await fetch(`${API_URL}/health`);
+        const data = await res.json();
+        document.getElementById('status').innerHTML =
+          `<div class="status ok">✅ Backend: ${data.message}</div>`;
+      } catch (error) {
+        document.getElementById('status').innerHTML =
+          `<div class="status error">❌ Backend connection failed</div>`;
+      }
+    }
+
+    async function loadItems() {
+      try {
+        const res = await fetch(`${API_URL}/items`);
+        const items = await res.json();
+
+        const itemsHtml = items.map(item => `
+          <div class="item">
+            <div>
+              <strong>${item.name}</strong><br>
+              <small>${item.description}</small><br>
+              <small>Created: ${new Date(item.createdAt).toLocaleString()}</small>
+            </div>
+            <button class="delete-btn" onclick="deleteItem('${item._id}')">Delete</button>
+          </div>
+        `).join('');
+
+        document.getElementById('items').innerHTML = itemsHtml || '<p>No items yet</p>';
+      } catch (error) {
+        console.error('Error loading items:', error);
+      }
+    }
+
+    async function addItem() {
+      const name = document.getElementById('name').value;
+      const description = document.getElementById('description').value;
+
+      if (!name || !description) {
+        alert('Please fill all fields');
+        return;
+      }
+
+      try {
+        await fetch(`${API_URL}/items`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, description })
+        });
+
+        document.getElementById('name').value = '';
+        document.getElementById('description').value = '';
+        loadItems();
+      } catch (error) {
+        console.error('Error adding item:', error);
+      }
+    }
+
+    async function deleteItem(id) {
+      try {
+        await fetch(`${API_URL}/items/${id}`, { method: 'DELETE' });
+        loadItems();
+      } catch (error) {
+        console.error('Error deleting item:', error);
+      }
+    }
+
+    // Load data on page load
+    checkBackend();
+    loadItems();
+  </script>
+</body>
+</html>
