@@ -31,6 +31,9 @@ The application uses a simple Mongoose schema defined in `backend/server.js:19-2
 - All code is in `frontend/index.html` - styles, markup, and JavaScript bundled together
 - API URL resolution: uses `http://localhost:5000/api` for local development, `/api` for production
 - Built with Vite and served from nginx in production
+- **Two nginx configurations:**
+  - `nginx/default.conf`: Main reverse proxy routing between frontend/backend containers
+  - `frontend/nginx.conf`: Internal nginx config for serving frontend static files within frontend container
 
 ## Development Commands
 
@@ -78,10 +81,16 @@ npm install
 npm start  # Starts server on port 5000
 ```
 
+**Local development without Docker:**
+```bash
+# Start MongoDB locally on port 27017, then:
+MONGODB_URI=mongodb://localhost:27017/merndb npm start
+```
+
 **Environment variables:**
 - `NODE_ENV`: Set to "production" in Docker
 - `PORT`: Backend port (default: 5000)
-- `MONGODB_URI`: MongoDB connection string
+- `MONGODB_URI`: MongoDB connection string (default: `mongodb://mongo:27017/merndb`)
 
 ### Frontend Development
 
@@ -133,3 +142,16 @@ All backend routes are defined in `backend/server.js:27-62`:
 - Health check uses `mongosh` to ping the database
 - Backend waits for healthy MongoDB before starting (`depends_on` with health condition)
 - Data persists in Docker volume `mongo_data`
+
+## Deployment Architecture
+
+This application is designed for deployment on AWS EC2 or similar cloud platforms:
+
+- All services run in Docker containers managed by Docker Compose
+- Port 80 is exposed for HTTP traffic through nginx reverse proxy
+- MongoDB data persists across container restarts via named volume
+- Services have dependency management ensuring startup order (MongoDB → Backend → Frontend → Nginx)
+
+## Common Issues
+
+If experiencing port conflicts (particularly port 80), see `FIX_PORT_80_CONFLICT.md` and `TROUBLESHOOTING_TH.md` for detailed troubleshooting steps.

@@ -5,7 +5,8 @@
       "Bash(sudo ss:*)",
       "Bash(ss:*)",
       "Bash(netstat:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(docker-compose ps:*)"
     ],
     "deny": [],
     "ask": []
