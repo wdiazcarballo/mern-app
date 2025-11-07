@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sudo lsof:*)",
+      "Bash(sudo ss:*)",
+      "Bash(ss:*)",
+      "Bash(netstat:*)",
+      "Bash(lsof:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
